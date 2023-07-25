@@ -1,0 +1,122 @@
+!
+! Standard Switch
+!
+en
+conf terminal
+no ip domain lookup
+!
+ip domain name lab.local
+cry key gen rsa mod 2048
+!
+user cisco privil 15 sec cisco
+enable sec cisco
+!
+ alias exec c configure terminal
+ alias exec sr show running-config
+!
+ line con 0
+  privil lev 15
+  no exec-tim
+  logging sync
+line vty 0 15
+ privil lev 15
+ trans in ssh
+ logging sync
+ no exec-tim
+!
+end
+wr
+!
+
+
+!
+! ISR/vIOS
+!
+enable
+conf t
+no ip domain lookup
+!
+ip domain name lab.local
+username cisco privil 15 sec cisco
+enable sec cisco
+cry key gen rsa mod 2048
+!
+ alias exec c configure terminal
+ alias exec sr show running-config
+ line con 0
+  privil lev 15
+  no exec-tim
+  logging sync
+  line vty 0 15
+  trans in ssh
+ privil lev 15
+ logging sync
+ no exec-tim
+
+!
+! For ISRv/vIOS router
+event manager applet ADMIN_UP
+ event syslog pattern "SYS-5-RESTART" maxrun 2000
+ action 1.0 cli command "en"
+ action 2.0 cli command "conf t"
+ action 3.0 cli command "int ran g0/0-3"
+ action 4.0 cli command "no shut"
+ action 5.0 cli command "end"
+!
+end
+wr
+
+!
+! provisioning for SDA
+!
+aaa new
+aaa authen login default local
+aaa authen login empty  none
+
+user dnac privil 15 sec cisco
+enable sec cisco
+
+ip routing
+ip domain name lab.local
+no ip domain look
+
+
+router eigrp EIGRP_SDA
+ !
+ address-family ipv4 unicast autonomous-system 1
+  !
+  af-interface default
+   passive-interface
+  exit-af-interface
+  !
+  network 0.0.0.0
+ exit-address-family
+
+
+snmp-server comm public ro
+snmp-server comm private rw
+
+netconf-yang 
+
+
+line vty 0 15
+login authen default
+logging sync
+trans in ssh
+privil lev 15
+exec-tim 0 0
+
+line con 0
+login auth empty
+logging sync
+exec-tim 0 0
+privil lev 15
+
+cry key gen rsa mod 2048
+
+end
+wr
+
+
+
+
